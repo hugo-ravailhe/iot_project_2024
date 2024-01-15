@@ -1,4 +1,5 @@
 import paho.mqtt.client as mqtt
+from gpiozero import LED
 
 # Define the broker and topics
 broker_address = "test.mosquitto.org"
@@ -34,10 +35,10 @@ client.connect(broker_address, broker_port, keepalive=keep_alive_interval)
 # Start the MQTT client loop to handle messages
 client.loop_start()
 
-# Keep the application running
 try:
     while True:
-        pass
+       pass
+            
 except KeyboardInterrupt:
     # Disconnect the client upon keyboard interruption
     client.disconnect()
