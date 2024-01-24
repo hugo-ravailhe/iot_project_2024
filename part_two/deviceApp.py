@@ -148,9 +148,10 @@ clim_heater_trigger = None
 clim_temperature = None
 
 # Garage
-distanceA = None
-distanceB = None
-garage_status = None
+trigger_distanceA = None
+trigger_distanceB = None
+garage_distance = None
+garage_door_status = False
 
 
 #### Methods ####
@@ -159,7 +160,7 @@ def data_to_send():
     while True:
         device_client.publish(topic_alarm["status"], alarm_status)
         device_client.publish(topic_clim["temperature"], clim_temperature)
-        device_client.publish(topic_garage["status"], garage_status)
+        device_client.publish(topic_garage["status"], garage_get_status())
         time.sleep(2.5)
 
 # Alarm
@@ -193,28 +194,53 @@ def read_temperature():
 
         time.sleep(10)
 
-# def get_distance():
-#     GPIO.output(SONAR_TRIG, True)
-#     time.sleep(0.00001)
-#     GPIO.output(SONAR_TRIG, False)
-#     pulse_start = 0
-#     pulse_end = 0
-#     while GPIO.input(SONAR_ECHO)==0:
-#         pulse_start = time.time()
+# Garage
+def get_distance():
+    GPIO.output(SONAR_TRIG, True)
+    time.sleep(0.00001)
+    GPIO.output(SONAR_TRIG, False)
+    pulse_start = 0
+    pulse_end = 0
+    while GPIO.input(SONAR_ECHO)==0:
+        pulse_start = time.time()
         
-#     while GPIO.input(SONAR_ECHO)==1:
-#         pulse_end = time.time()
+    while GPIO.input(SONAR_ECHO)==1:
+        pulse_end = time.time()
 
-#     pulse_duration = pulse_end - pulse_start
-#     distance = pulse_duration * 17150
-#     distance = round(distance, 2)
-#     return distance
+    pulse_duration = pulse_end - pulse_start
+    distance = pulse_duration * 17150
+    distance = round(distance, 2)
+    return distance
 
-# def garage_trigger():
-#     distance = get_distance()
+def rotate_motor(open: bool = True):
+    global garage_door_status
+    if open:
+        garage_door_status = True
+    else:
+        garage_door_status = False
 
+def garage_trigger():
+    global garage_distance
+    global garage_door_status
+    garage_distance = get_distance()
+
+    if garage_distance < trigger_distanceA:
+        rotate_motor(open=True)
+    elif garage_distance < trigger_distanceB or garage_door_status:
+        rotate_motor(open=False)
     
+    time.sleep(1)
 
+def garage_get_status():
+    global garage_distance
+    if garage_distance < trigger_distanceB:
+        return True
+    else:
+        return False
+  
+
+####### Callback ######
+    
 # Alarm
 def alarm_enable(client, userdata, message):
     print("Enable alarm")
@@ -263,17 +289,17 @@ def clim_set_heater_trigger(client, userdata, message):
     clim_heater_trigger = payload
 
 # Garage
-def garage_set_distanceA(client, userdata, message):
+def garage_set_trigger_distanceA(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set Distance A")
-    global distanceA
-    distanceA = payload
+    global trigger_distanceA
+    trigger_distanceA = payload
 
-def garage_set_distanceB(client, userdata, message):
+def garage_set_trigger_distanceB(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set Distance B")
-    global distanceB
-    distanceB = payload
+    global trigger_distanceB
+    trigger_distanceB = payload
 
 
 ####### Set up Broker #######
@@ -284,8 +310,8 @@ device_client.message_callback_add(topic_light["enable"], light_enable)
 device_client.message_callback_add(topic_light["disable"], light_disable)
 device_client.message_callback_add(topic_clim["ac_trigger"], clim_set_ac_trigger)
 device_client.message_callback_add(topic_clim["heater_trigger"], clim_set_heater_trigger)
-device_client.message_callback_add(topic_garage["distanceA"], garage_set_distanceA)
-device_client.message_callback_add(topic_garage["distanceB"], garage_set_distanceB)
+device_client.message_callback_add(topic_garage["distanceA"], garage_set_trigger_distanceA)
+device_client.message_callback_add(topic_garage["distanceB"], garage_set_trigger_distanceB)
 
 # Start the MQTT loop
 device_client.loop_start()
@@ -295,6 +321,8 @@ try:
     thread_temperature.start()
     thread_alarm = threading.Thread(target=alarm_system)
     thread_alarm.start()
+    thread_garage = threading.Thread(target=garage_trigger)
+    thread_garage.start()
     while True:
         data_to_send()
         time.sleep(10)
