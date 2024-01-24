@@ -175,150 +175,169 @@ def on_message(client, userdata, msg):
     else:
         print(f"Received message on topic {msg.topic}: {msg.payload.decode()}")
 
-
 client.on_message = on_message
 
 client.loop_start()
 
-try:
-    while True:
-        choice = input("Choose a service (1: Alarm, 2: Light, 3: Climatization, 4: Garage), or 'Q' to quit: ")
+####### Main #######
 
-        if choice == "q" or choice == "Q":
+### Interface ###
+
+def display_main_menu():
+    print("\nSmart Home Application Menu")
+    print("1. Alarm")
+    print("2. Light")
+    print("3. Climatization")
+    print("4. Garage")
+    print("T. Read Temperature")
+    print("Q. Quitter")
+
+def handle_alarm():
+    while True:
+        alarm_action = input("Select an action (1: Enable alarm, 2: Disable alarm, 3: get alarm status), or 'Q' to quit: ")
+        if alarm_action == "1":
+            alarm_enable()
+        elif alarm_action == "2":
+            alarm_disable()
+        elif alarm_action == "3":
+            alarm_get_status()
+        elif alarm_action == "q" or alarm_action == "Q":
+            print()
+            print()
+            break
+        else:
+            print("Invalid value, try again")
+
+def handle_light():
+    while True:
+        light_action = input("Select an action (1: Enable light, 2: Disable light), or 'Q' to quit: ")
+        if light_action == "1":
+            light_room = input("Select a room ('0' to select all rooms), or 'Q' to quit: ")
+
+            if light_room == "q" or light_room == "Q":
+                print()
+                print()
+                break
+        
+            # Verify room exists
+            light_enable(light_room)
+
+        elif light_action == "2":
+            light_room = input("Select a room ('0' to select all rooms), or 'Q' to quit: ")
+
+            if light_room == "q" or light_room == "Q":
+                print()
+                print()
+                break
+        
+            # Verify room exists
+            light_disable(light_room)
+
+        elif light_action == "q" or light_action == "Q":
+            print()
+            print()
             break
 
-        # Alarm
-        if choice == "1":
-            while True:
-                alarm_action = input("Select an action (1: Enable alarm, 2: Disable alarm, 3: get alarm status), or 'Q' to quit: ")
-                if alarm_action == "1":
-                    alarm_enable()
-                elif alarm_action == "2":
-                    alarm_disable()
-                elif alarm_action == "3":
-                    alarm_get_status()
-                elif alarm_action == "q" or alarm_action == "Q":
-                    print()
-                    print()
-                    break
-                else:
-                    print("Invalid value, try again")
+        else:
+            print("Invalid value, try again")
+
+def handle_climatization():
+    while True:
+        clim_action = input("Select an action (1: Set AC trigger, 2: Set Heater trigger, 3: Display temperature), or 'Q' to quit: ")
+        if clim_action == "1":
+            trigger = input("Select a AC trigger ('none' to disable), or 'Q' to quit: ")
+
+            if trigger == "q" or trigger == "Q":
+                print()
+                print()
+                break
         
-        # Light
-        elif choice == "2":
-            while True:
-                light_action = input("Select an action (1: Enable light, 2: Disable light), or 'Q' to quit: ")
-                if light_action == "1":
-                    light_room = input("Select a room ('0' to select all rooms), or 'Q' to quit: ")
+            # Verify room exists
+            clim_ac_trigger(trigger)
 
-                    if light_room == "q" or light_room == "Q":
-                        print()
-                        print()
-                        break
-                
-                    # Verify room exists
-                    light_enable(light_room)
+        elif clim_action == "2":
+            trigger = input("Select a Heater trigger ('none' to disable), or 'Q' to quit: ")
 
-                elif light_action == "2":
-                    light_room = input("Select a room ('0' to select all rooms), or 'Q' to quit: ")
-
-                    if light_room == "q" or light_room == "Q":
-                        print()
-                        print()
-                        break
-                
-                    # Verify room exists
-                    light_disable(light_room)
-
-                elif light_action == "q" or light_action == "Q":
-                    print()
-                    print()
-                    break
-
-                else:
-                    print("Invalid value, try again")
-
-        # Climatization
-        elif choice == "3":
-            while True:
-                clim_action = input("Select an action (1: Set AC trigger, 2: Set Heater trigger, 3: Display temperature), or 'Q' to quit: ")
-                if clim_action == "1":
-                    trigger = input("Select a AC trigger ('none' to disable), or 'Q' to quit: ")
-
-                    if trigger == "q" or trigger == "Q":
-                        print()
-                        print()
-                        break
-                
-                    # Verify room exists
-                    clim_ac_trigger(trigger)
-
-                elif clim_action == "2":
-                    trigger = input("Select a Heater trigger ('none' to disable), or 'Q' to quit: ")
-
-                    if trigger == "q" or trigger == "Q":
-                        print()
-                        print()
-                        break
-                
-                    # Verify room exists
-                    clim_heater_trigger(trigger)
-                
-                elif clim_action == "3":
-                    clim_get_temperature()
-
-                elif clim_action == "q" or clim_action == "Q":
-                    print()
-                    print()
-                    break
-
-                else:
-                    print("Invalid value, try again")
+            if trigger == "q" or trigger == "Q":
+                print()
+                print()
+                break
         
-        # Garage
-        elif choice == "4":
-            while True:
-                garage_action = input("Select an action (1: Set distance A, 2: Set distance B, 3: Get garage status), or 'Q' to quit: ")
-                if garage_action == "1":
-                    distance = input("Select a distance, or 'Q' to quit: ")
+            # Verify room exists
+            clim_heater_trigger(trigger)
+        
+        elif clim_action == "3":
+            clim_get_temperature()
 
-                    if distance == "q" or distance == "Q":
-                        print()
-                        print()
-                        break
-                
-                    # Verify room exists
-                    clim_ac_trigger(distance)
-
-                elif garage_action == "2":
-                    distance = input("Select a trigger, or 'Q' to quit: ")
-
-                    if distance == "q" or distance == "Q":
-                        print()
-                        print()
-                        break
-                
-                    # Verify room exists
-                    clim_heater_trigger(distance)
-
-                elif garage_action == "3":
-                    garage_get_status()
-
-                elif garage_action == "q" or garage_action == "Q":
-                    print()
-                    print()
-                    break
-
-                else:
-                    print("Invalid value, try again")
-
-        elif choice == "t" or choice == "T":
-            # Request temperature reading
-            client.subscribe(f"efrei/liu_ravailhe/temperature")
+        elif clim_action == "q" or clim_action == "Q":
+            print()
+            print()
+            break
 
         else:
-            print("Invalid choice, try again")
+            print("Invalid value, try again")
 
+def handle_garage():
+    while True:
+        garage_action = input("Select an action (1: Set distance A, 2: Set distance B, 3: Get garage status), or 'Q' to quit: ")
+        if garage_action == "1":
+            distance = input("Select a distance, or 'Q' to quit: ")
+
+            if distance == "q" or distance == "Q":
+                print()
+                print()
+                break
+        
+            # Verify room exists
+            clim_ac_trigger(distance)
+
+        elif garage_action == "2":
+            distance = input("Select a trigger, or 'Q' to quit: ")
+
+            if distance == "q" or distance == "Q":
+                print()
+                print()
+                break
+        
+            # Verify room exists
+            clim_heater_trigger(distance)
+
+        elif garage_action == "3":
+            garage_get_status()
+
+        elif garage_action == "q" or garage_action == "Q":
+            print()
+            print()
+            break
+
+        else:
+            print("Invalid value, try again")
+
+def read_temperature():
+    client.subscribe(f"efrei/liu_ravailhe/temperature")
+
+
+### Main ###
+
+try:
+    while True:
+        display_main_menu()
+        choice = input("\nChoose an option: ").strip().lower()
+
+        if choice == "q":
+            break
+        elif choice == "1":
+            handle_alarm()
+        elif choice == "2":
+            handle_light()
+        elif choice == "3":
+            handle_climatization()
+        elif choice == "4":
+            handle_garage()
+        elif choice == "t":
+            read_temperature()
+        else:
+            print("Invalid value, try again.")
     
 except KeyboardInterrupt:
     pass
