@@ -26,8 +26,8 @@ topic_light = {
 }
 
 topic_clim = {
-    "ac_trigger": 'efrei/liu_ravailhe/clim/ac/trigger', # Set trigger value for AC
-    "heater_trigger": 'efrei/liu_ravailhe/clim/heater/trigger', # Set trigger value for heater
+    "ac_trigger": 'efrei/liu_ravailhe/clim/ac', # Set trigger value for AC
+    "heater_trigger": 'efrei/liu_ravailhe/clim/heater', # Set trigger value for heater
     "temperature": 'efrei/liu_ravailhe/clim/temperature' # Display temperature
 }
 
@@ -94,7 +94,9 @@ def light_disable(room):
 
 # Clim
 def clim_ac_trigger(trigger):
+    print("2")
     client.publish(topic_clim["ac_trigger"], trigger)
+    print("2.5")
 
 def clim_heater_trigger(trigger):
     client.publish(topic_clim["heater_trigger"], trigger)
@@ -252,8 +254,10 @@ def handle_climatization():
                 print()
                 break
         
+            print("ac 1")
             # Verify room exists
             clim_ac_trigger(trigger)
+            print("ac 3")
 
         elif clim_action == "2":
             trigger = input("Select a Heater trigger ('none' to disable), or 'Q' to quit: ")
@@ -289,7 +293,7 @@ def handle_garage():
                 break
         
             # Verify room exists
-            clim_ac_trigger(distance)
+            garage_distanceA(distance)
 
         elif garage_action == "2":
             distance = input("Select a trigger, or 'Q' to quit: ")
@@ -300,7 +304,7 @@ def handle_garage():
                 break
         
             # Verify room exists
-            clim_heater_trigger(distance)
+            garage_distanceB(distance)
 
         elif garage_action == "3":
             garage_get_status()

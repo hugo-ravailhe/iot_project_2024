@@ -42,7 +42,7 @@ GPIO.output(SONAR_TRIG, False)
 
 
 # Servo Motor
-MOTOR = 6
+MOTOR = 18
 
 GPIO.setup(MOTOR, GPIO.OUT)
 p = GPIO.PWM(MOTOR, 50)
@@ -97,8 +97,8 @@ topic_light = {
 }
 
 topic_clim = {
-    "ac_trigger": 'efrei/liu_ravailhe/clim/ac/trigger', # Set trigger value for AC
-    "heater_trigger": 'efrei/liu_ravailhe/clim/heater/trigger', # Set trigger value for heater
+    "ac_trigger": 'efrei/liu_ravailhe/clim/ac', # Set trigger value for AC
+    "heater_trigger": 'efrei/liu_ravailhe/clim/heater', # Set trigger value for heater
     "temperature": 'efrei/liu_ravailhe/clim/temperature' # Display temperature
 }
 
@@ -180,7 +180,12 @@ def read_temperature():
     print("Temperature System launched")
     while True:
         global clim_temperature
+        global clim_ac_trigger
+        global clim_heater_trigger
         humidity, clim_temperature = Adafruit_DHT.read_retry(TEMP_SENSOR, TEMP_PIN)
+        print("Temperature: {0:0.1f}°C".format(clim_temperature))
+        print(f"Ac trigger: {clim_ac_trigger}")
+        print(f"Heater trigger: {clim_heater_trigger}")
 
         if clim_temperature is not None and clim_ac_trigger is not None and clim_temperature > clim_ac_trigger:
             GPIO.output(LED_BLUE, GPIO.HIGH)
@@ -212,31 +217,43 @@ def get_distance():
     distance = round(distance, 2)
     return distance
 
+def set_angle(angle):
+    duty_cycle = 2.5 + (angle / 18.0)
+    p.ChangeDutyCycle(duty_cycle)
+    time.sleep(1)
+
 def rotate_motor(open: bool = True):
     global garage_door_status
     if open:
         garage_door_status = True
+        set_angle(180)
     else:
         garage_door_status = False
+        set_angle(0)
 
 def garage_trigger():
-    global garage_distance
-    global garage_door_status
-    garage_distance = get_distance()
+    print("Garage System launched")
+    while True:
+        global garage_distance
+        global garage_door_status
+        garage_distance = get_distance()
 
-    if garage_distance < trigger_distanceA:
-        rotate_motor(open=True)
-    elif garage_distance < trigger_distanceB or garage_door_status:
-        rotate_motor(open=False)
-    
-    time.sleep(1)
+        if garage_distance is not None and trigger_distanceB is not None:
+            if garage_distance < trigger_distanceA:
+                rotate_motor(open=True)
+            elif garage_distance < trigger_distanceB or garage_door_status:
+                rotate_motor(open=False)
+        
+        time.sleep(5)
 
 def garage_get_status():
     global garage_distance
-    if garage_distance < trigger_distanceB:
-        return True
-    else:
-        return False
+    if garage_distance is not None and trigger_distanceB is not None:
+        if garage_distance < trigger_distanceB:
+            return True
+        else:
+            return False
+    return False
   
 
 ####### Callback ######
