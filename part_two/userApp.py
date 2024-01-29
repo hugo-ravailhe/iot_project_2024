@@ -266,7 +266,7 @@ def handle_climatization():
 
         elif clim_action == "2":
             trigger = input("Select a Heater trigger ('none' to disable), or 'Q' to quit: ")
-
+            
             if trigger == "q" or trigger == "Q":
                 print()
                 print()
