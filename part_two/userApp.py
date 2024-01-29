@@ -14,6 +14,7 @@ print("""
 print("Smart Home Application is starting...\n\n")
 
 ####### Set up Topics #######
+# This part describes the topics used by the application to communicate with the broker
 
 topic_alarm = {
     "enable": 'efrei/liu_ravailhe/alarm/enable', # Enable alarm
@@ -40,6 +41,7 @@ topic_garage = {
 
 
 ####### Set up Broker #######
+# This part describes the broker settings and the connection to the broker
 
 # MQTT Broker settings
 broker_address = "127.0.0.1"
@@ -62,9 +64,8 @@ client.on_connect = on_connect
 client.connect(broker_address, broker_port, keepalive=keep_alive_interval)
 
 
-####### Application #######
-
 #### Variables ####
+# This part describes the variables used by the application
 
 alarm_status = None
 clim_temperature = None
@@ -72,6 +73,7 @@ garage_status = None
 verbose = False
 
 #### Methods ####
+# This part describes the methods used by the application
 
 # Alarms
 def alarm_enable():
@@ -226,7 +228,6 @@ def handle_light():
                 print()
                 break
         
-            # Verify room exists
             light_enable(light_room)
 
         elif light_action == "2":
@@ -237,7 +238,6 @@ def handle_light():
                 print()
                 break
         
-            # Verify room exists
             light_disable(light_room)
 
         elif light_action == "q" or light_action == "Q":
@@ -259,10 +259,7 @@ def handle_climatization():
                 print()
                 break
         
-            print("ac 1")
-            # Verify room exists
             clim_ac_trigger(trigger)
-            print("ac 3")
 
         elif clim_action == "2":
             trigger = input("Select a Heater trigger ('none' to disable), or 'Q' to quit: ")
@@ -272,7 +269,6 @@ def handle_climatization():
                 print()
                 break
         
-            # Verify room exists
             clim_heater_trigger(trigger)
         
         elif clim_action == "3":
@@ -297,7 +293,6 @@ def handle_garage():
                 print()
                 break
         
-            # Verify room exists
             garage_distanceA(distance)
 
         elif garage_action == "2":
@@ -308,7 +303,6 @@ def handle_garage():
                 print()
                 break
         
-            # Verify room exists
             garage_distanceB(distance)
 
         elif garage_action == "3":

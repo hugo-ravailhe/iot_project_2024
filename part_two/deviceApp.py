@@ -17,6 +17,7 @@ print("""
 print("Device App is running...\n\n")
 
 ####### Set up GPIO #######
+# This part desciptes the GPIO pins used by the device app
 
 GPIO.setmode(GPIO.BCM)
 
@@ -84,6 +85,7 @@ room_light = {
 
 
 ####### Set up Topics #######
+# This part describes the topics used by the device app
 
 topic_alarm = {
     "enable": 'efrei/liu_ravailhe/alarm/enable', # Enable alarm
@@ -110,6 +112,7 @@ topic_garage = {
 
 
 ####### Set up Broker #######
+# This part describes the MQTT broker used by the device app and the methods to connect to it
 
 # MQTT Broker settings
 broker_address = "127.0.0.1"
@@ -133,6 +136,7 @@ device_client.connect(broker_address, broker_port, broker_timeout)
 
 
 ####### Application #######
+# This part describes global variables and methods used by the device app
 
 #### Variables ####
 
@@ -276,8 +280,9 @@ def garage_get_status():
   
 
 ####### Callback ######
+# This part describes the callback methods used by the device app
     
-# Alarm
+## Alarm
 def alarm_enable(client, userdata, message):
     print("Enable alarm")
     global alarm_status
@@ -290,7 +295,7 @@ def alarm_disable(client, userdata, message):
     alarm_status = False
     device_client.publish(topic_alarm["status"], alarm_status)
 
-# Light
+## Light
 def light_enable(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Enable light")
@@ -313,7 +318,8 @@ def light_disable(client, userdata, message):
     else:
         print(f"Invalid input: {payload}")
 
-# Climatization
+## Climatization
+# Methods to set the AC trigger
 def clim_set_ac_trigger(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set AC trigger")
@@ -329,6 +335,7 @@ def clim_set_ac_trigger(client, userdata, message):
     except:
         print("Invalid input\n")
 
+# Methods to set the heater trigger
 def clim_set_heater_trigger(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set Heater trigger")
@@ -343,7 +350,8 @@ def clim_set_heater_trigger(client, userdata, message):
     except:
         print("Invalid input\n")
 
-# Garage
+## Garage
+# Methods to set the distance A
 def garage_set_trigger_distanceA(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set Distance A")
@@ -357,6 +365,7 @@ def garage_set_trigger_distanceA(client, userdata, message):
     except:
         print("Invalid input\n")
 
+# Methods to set the distance B
 def garage_set_trigger_distanceB(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set Distance B")
@@ -386,12 +395,18 @@ device_client.message_callback_add(topic_garage["distanceB"], garage_set_trigger
 device_client.loop_start()
 
 try:
+    # Start the threads
+    # 1. Read temperature
     thread_temperature = threading.Thread(target=read_temperature)
     thread_temperature.start()
+    # 2. Alarm system
     thread_alarm = threading.Thread(target=alarm_system)
     thread_alarm.start()
+    # 3. Garage system
     thread_garage = threading.Thread(target=garage_trigger)
     thread_garage.start()
+    
+    # 4. Send data to broker
     while True:
         data_to_send()
         time.sleep(10)
