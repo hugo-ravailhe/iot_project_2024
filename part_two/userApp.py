@@ -100,7 +100,7 @@ def clim_heater_trigger(trigger):
     client.publish(topic_clim["heater_trigger"], trigger)
 
 def clim_get_temperature():
-    print(clim_temperature)
+    print("Temperature: {0:0.1f}°C".format(clim_temperature))
 
 # Garage
 def garage_distanceA(distance):
@@ -151,10 +151,14 @@ def on_message(client, userdata, msg):
             print("Heater trigger")
         
     elif topic == topic_clim["temperature"]:
-       global clim_temperature
-       clim_temperature = payload
-       if verbose:
-            print(f"Temperature: {clim_temperature}")
+        try:
+            temp = float(payload)
+            global clim_temperature
+            clim_temperature = temp
+        except:
+            print("Invalid temperature value")
+        if verbose:
+                print("Temperature: {0:0.1f}°C".format(clim_temperature))
     
     # Garage
     elif topic == topic_garage["distanceA"]:

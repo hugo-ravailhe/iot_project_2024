@@ -152,6 +152,7 @@ trigger_distanceA = None
 trigger_distanceB = None
 garage_distance = None
 garage_door_status = False
+parking_status = False
 
 
 #### Methods ####
@@ -184,8 +185,10 @@ def read_temperature():
         global clim_heater_trigger
         humidity, clim_temperature = Adafruit_DHT.read_retry(TEMP_SENSOR, TEMP_PIN)
         print("Temperature: {0:0.1f}°C".format(clim_temperature))
-        print(f"Ac trigger: {clim_ac_trigger}")
-        print(f"Heater trigger: {clim_heater_trigger}")
+        if clim_ac_trigger is not None:
+            print("Ac trigger: {0:0.1f}°C".format(clim_ac_trigger))
+        if clim_heater_trigger is not None:
+            print("Heater trigger: {0:0.1f}°C".format(clim_heater_trigger))
 
         if clim_temperature is not None and clim_ac_trigger is not None and clim_temperature > clim_ac_trigger:
             GPIO.output(LED_BLUE, GPIO.HIGH)
@@ -236,24 +239,27 @@ def garage_trigger():
     while True:
         global garage_distance
         global garage_door_status
+        global parking_status
         garage_distance = get_distance()
+        print("Distance: {0:0.1f}cm".format(garage_distance))
 
-        if garage_distance is not None and trigger_distanceB is not None:
-            if garage_distance < trigger_distanceA:
+        if garage_distance is not None and trigger_distanceB is not None and trigger_distanceA is not None:
+            if garage_distance < trigger_distanceA and garage_distance > trigger_distanceB:
                 rotate_motor(open=True)
-            elif garage_distance < trigger_distanceB or garage_door_status:
+                time.sleep(3)
+            elif garage_distance < trigger_distanceB and garage_door_status:
                 rotate_motor(open=False)
+                parking_status = True
+                
+            elif garage_distance > trigger_distanceA and garage_door_status:
+                rotate_motor(open=False)
+                parking_status = False
         
-        time.sleep(5)
+        time.sleep(1)
 
 def garage_get_status():
-    global garage_distance
-    if garage_distance is not None and trigger_distanceB is not None:
-        if garage_distance < trigger_distanceB:
-            return True
-        else:
-            return False
-    return False
+    global parking_status
+    return parking_status
   
 
 ####### Callback ######
@@ -296,27 +302,49 @@ def light_disable(client, userdata, message):
 def clim_set_ac_trigger(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set AC trigger")
-    global clim_ac_trigger
-    clim_ac_trigger = payload
+    try:
+        trigger = float(payload)
+        global clim_ac_trigger
+        clim_ac_trigger = trigger
+        read_temperature()
+
+    except:
+        print("Invalid input\n")
 
 def clim_set_heater_trigger(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set Heater trigger")
-    global clim_heater_trigger
-    clim_heater_trigger = payload
+    try:
+        trigger = float(payload)
+        global clim_heater_trigger
+        clim_heater_trigger = trigger
+        read_temperature()
+
+    except:
+        print("Invalid input\n")
 
 # Garage
 def garage_set_trigger_distanceA(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set Distance A")
-    global trigger_distanceA
-    trigger_distanceA = payload
+    try:
+        trigger = float(payload)
+        global trigger_distanceA
+        trigger_distanceA = trigger
+    
+    except:
+        print("Invalid input\n")
 
 def garage_set_trigger_distanceB(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set Distance B")
-    global trigger_distanceB
-    trigger_distanceB = payload
+    try:
+        trigger = float(payload)
+        global trigger_distanceB
+        trigger_distanceB = trigger
+    
+    except:
+        print("Invalid input\n")
 
 
 ####### Set up Broker #######
