@@ -94,9 +94,7 @@ def light_disable(room):
 
 # Clim
 def clim_ac_trigger(trigger):
-    print("2")
     client.publish(topic_clim["ac_trigger"], trigger)
-    print("2.5")
 
 def clim_heater_trigger(trigger):
     client.publish(topic_clim["heater_trigger"], trigger)
@@ -191,7 +189,6 @@ def display_main_menu():
     print("2. Light")
     print("3. Climatization")
     print("4. Garage")
-    print("T. Read Temperature")
     print("Q. Quitter")
 
 def handle_alarm():
@@ -317,9 +314,6 @@ def handle_garage():
         else:
             print("Invalid value, try again")
 
-def read_temperature():
-    client.subscribe(f"efrei/liu_ravailhe/temperature")
-
 
 ### Main ###
 
@@ -338,8 +332,6 @@ try:
             handle_climatization()
         elif choice == "4":
             handle_garage()
-        elif choice == "t":
-            read_temperature()
         else:
             print("Invalid value, try again.")
     
