@@ -1,4 +1,5 @@
 import paho.mqtt.client as mqtt
+import time
 
 print("""
     /\\ 
@@ -80,10 +81,12 @@ def alarm_disable():
     client.publish(topic_alarm["disable"])
 
 def alarm_get_status():
-    if alarm_status:
-        print("Alarm status: Enable")
+    global alarm_status
+    print(alarm_status)
+    if alarm_status is None:
+        print("Alarm status: Unknown")
     else:
-        print("Alarm status: Disable")
+        print(f"Alarm status: {alarm_status}")
 
 # Light
 def light_enable(room):
@@ -110,6 +113,7 @@ def garage_distanceB(distance):
     client.publish(topic_garage["distanceB"], distance)
 
 def garage_get_status():
+    global garage_status
     print(garage_status)
 
 # Callback when a message is received from the broker
@@ -193,11 +197,11 @@ def display_main_menu():
     print("2. Light")
     print("3. Climatization")
     print("4. Garage")
-    print("Q. Quitter")
+    print("Q. Quit\n")
 
 def handle_alarm():
     while True:
-        alarm_action = input("Select an action (1: Enable alarm, 2: Disable alarm, 3: get alarm status), or 'Q' to quit: ")
+        alarm_action = input("\nAlarm menu:\n1. Enable alarm\n2. Disable alarm\n3. get alarm status\nQ. Quit\nSelect an action: ")
         if alarm_action == "1":
             alarm_enable()
         elif alarm_action == "2":
@@ -213,7 +217,7 @@ def handle_alarm():
 
 def handle_light():
     while True:
-        light_action = input("Select an action (1: Enable light, 2: Disable light), or 'Q' to quit: ")
+        light_action = input("\nLight menu:\n1. Enable light\n2. Disable light\nQ. Quit\nSelect an action: ")
         if light_action == "1":
             light_room = input("Select a room ('0' to select all rooms), or 'Q' to quit: ")
 
@@ -246,7 +250,7 @@ def handle_light():
 
 def handle_climatization():
     while True:
-        clim_action = input("Select an action (1: Set AC trigger, 2: Set Heater trigger, 3: Display temperature), or 'Q' to quit: ")
+        clim_action = input("\nClimatization menu\n1. Set AC trigger\n2. Set Heater trigger\n3. Display temperature\nQ. Quit\nSelect an action: ")
         if clim_action == "1":
             trigger = input("Select a AC trigger ('none' to disable), or 'Q' to quit: ")
 
@@ -284,9 +288,9 @@ def handle_climatization():
 
 def handle_garage():
     while True:
-        garage_action = input("Select an action (1: Set distance A, 2: Set distance B, 3: Get garage status), or 'Q' to quit: ")
+        garage_action = input("\nGarage menu\n1. Set distance A\n2. Set distance B\n3. Get parking status\nQ. Quit\nSelect an action: ")
         if garage_action == "1":
-            distance = input("Select a distance, or 'Q' to quit: ")
+            distance = input("Select a distance (cm), or 'Q' to quit: ")
 
             if distance == "q" or distance == "Q":
                 print()
@@ -297,7 +301,7 @@ def handle_garage():
             garage_distanceA(distance)
 
         elif garage_action == "2":
-            distance = input("Select a trigger, or 'Q' to quit: ")
+            distance = input("Select a distance (cm), or 'Q' to quit: ")
 
             if distance == "q" or distance == "Q":
                 print()
@@ -322,9 +326,10 @@ def handle_garage():
 ### Main ###
 
 try:
+    time.sleep(0.5)
     while True:
         display_main_menu()
-        choice = input("\nChoose an option: ").strip().lower()
+        choice = input("Choose an option: ").strip().lower()
 
         if choice == "q":
             break

@@ -185,10 +185,23 @@ def read_temperature():
         global clim_heater_trigger
         humidity, clim_temperature = Adafruit_DHT.read_retry(TEMP_SENSOR, TEMP_PIN)
         print("Temperature: {0:0.1f}°C".format(clim_temperature))
+        temp_light()
+
+        time.sleep(3)
+        
+def temp_light():
+        global clim_temperature
+        global clim_ac_trigger
+        global clim_heater_trigger
+        print("Temperature: {0:0.1f}°C".format(clim_temperature))
         if clim_ac_trigger is not None:
             print("Ac trigger: {0:0.1f}°C".format(clim_ac_trigger))
+        else:
+            GPIO.output(LED_BLUE, GPIO.LOW)
         if clim_heater_trigger is not None:
             print("Heater trigger: {0:0.1f}°C".format(clim_heater_trigger))
+        else:
+            GPIO.output(LED_RED, GPIO.LOW)
 
         if clim_temperature is not None and clim_ac_trigger is not None and clim_temperature > clim_ac_trigger:
             GPIO.output(LED_BLUE, GPIO.HIGH)
@@ -199,8 +212,6 @@ def read_temperature():
             GPIO.output(LED_RED, GPIO.HIGH)
         else:
             GPIO.output(LED_RED, GPIO.LOW)
-
-        time.sleep(10)
 
 # Garage
 def get_distance():
@@ -250,10 +261,12 @@ def garage_trigger():
             elif garage_distance < trigger_distanceB and garage_door_status:
                 rotate_motor(open=False)
                 parking_status = True
+                device_client.publish(topic_garage["status"], garage_get_status())
                 
             elif garage_distance > trigger_distanceA and garage_door_status:
                 rotate_motor(open=False)
                 parking_status = False
+                device_client.publish(topic_garage["status"], garage_get_status())
         
         time.sleep(1)
 
@@ -269,11 +282,13 @@ def alarm_enable(client, userdata, message):
     print("Enable alarm")
     global alarm_status
     alarm_status = True
+    device_client.publish(topic_alarm["status"], alarm_status)
 
 def alarm_disable(client, userdata, message):
     print("Disable alarm")
     global alarm_status
     alarm_status = False
+    device_client.publish(topic_alarm["status"], alarm_status)
 
 # Light
 def light_enable(client, userdata, message):
@@ -303,11 +318,14 @@ def clim_set_ac_trigger(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set AC trigger")
     try:
-        trigger = float(payload)
         global clim_ac_trigger
-        clim_ac_trigger = trigger
-        read_temperature()
-
+        if payload == 'none':
+            clim_ac_trigger = None
+            
+        else:
+            clim_ac_trigger = float(payload)
+        print(f"AC Trigger: {clim_ac_trigger}")
+        temp_light()
     except:
         print("Invalid input\n")
 
@@ -315,11 +333,13 @@ def clim_set_heater_trigger(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set Heater trigger")
     try:
-        trigger = float(payload)
         global clim_heater_trigger
-        clim_heater_trigger = trigger
-        read_temperature()
-
+        if payload == 'none':
+            clim_heater_trigger = None
+        else:
+            clim_heater_trigger = float(payload)
+        print(f"Heater Trigger: {clim_heater_trigger}")
+        temp_light()
     except:
         print("Invalid input\n")
 
@@ -328,10 +348,12 @@ def garage_set_trigger_distanceA(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set Distance A")
     try:
-        trigger = float(payload)
         global trigger_distanceA
-        trigger_distanceA = trigger
-    
+        if payload == 'none':
+            trigger_distanceA = None
+        else:
+            trigger_distanceA = float(payload)
+        print(f"Distance A: {trigger_distanceA}")
     except:
         print("Invalid input\n")
 
@@ -339,10 +361,12 @@ def garage_set_trigger_distanceB(client, userdata, message):
     payload = message.payload.decode("utf-8")
     print("Set Distance B")
     try:
-        trigger = float(payload)
         global trigger_distanceB
-        trigger_distanceB = trigger
-    
+        if payload == 'none':
+            trigger_distanceB = None
+        else:
+            trigger_distanceB = float(payload)
+        print(f"Distance B: {trigger_distanceB}")
     except:
         print("Invalid input\n")
 
